@@ -1,0 +1,3215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="水记">
+  <meta name="theme-color" content="#3B82F6">
+  <meta name="description" content="极简饮水追踪 — 扫一下二维码，完成一次记录">
+  <link rel="manifest" href="manifest.json">
+  <title>水记</title>
+
+  <!-- ============================================================
+       全部 CSS（内嵌）
+       ============================================================ -->
+  <style>
+    /* --- CSS 变量 --- */
+    :root {
+      --color-primary: #3B82F6;
+      --color-primary-dark: #2563EB;
+      --color-primary-light: #93C5FD;
+      --color-primary-bg: #EFF6FF;
+      --color-water: #60A5FA;
+      --color-water-deep: #3B82F6;
+      --color-water-light: #BAE6FD;
+      --color-glass: #E0E7FF;
+      --color-glass-border: #BFDBFE;
+      --color-bg: #F1F5F9;
+      --color-surface: #FFFFFF;
+      --color-text: #1E293B;
+      --color-text-secondary: #64748B;
+      --color-text-muted: #94A3B8;
+      --color-border: #E2E8F0;
+      --color-danger: #EF4444;
+      --color-danger-light: #FEE2E2;
+      --color-success: #10B981;
+      --color-success-bg: #ECFDF5;
+      --color-warning: #F59E0B;
+
+      --nav-height: 64px;
+      --max-width: 480px;
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    /* --- Reset --- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+                   'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================================
+       手机外壳 — 桌面端 (>640px)
+       ============================================================ */
+    @media (min-width: 641px) {
+      body {
+        background: #1E293B;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .phone-frame {
+        width: 390px;
+        height: 844px;
+        max-height: 95vh;
+        background: var(--color-bg);
+        border-radius: 44px;
+        border: 3px solid #475569;
+        box-shadow:
+          0 0 0 2px #334155,
+          0 0 0 6px #1E293B,
+          0 0 0 8px #0F172A,
+          0 20px 60px rgba(0,0,0,0.5);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+
+      /* FIX #1: iPhone 风格状态栏，时间左 + 信号右，去掉刘海遮挡 */
+      .phone-status-bar {
+        height: 44px;
+        background: #0F172A;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        flex-shrink: 0;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+      .phone-status-left { display: flex; align-items: center; gap: 4px; }
+      .phone-time-text { font-variant-numeric: tabular-nums; }
+      .phone-status-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+      }
+      .status-icon { opacity: 0.8; }
+
+      .phone-screen {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+        /* FIX #2: 隐藏滚动条 */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .phone-screen::-webkit-scrollbar { display: none; }
+
+      .phone-home-indicator {
+        height: 34px;
+        background: #0F172A;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .phone-home-indicator::after {
+        content: '';
+        width: 134px;
+        height: 5px;
+        background: #475569;
+        border-radius: 100px;
+      }
+
+      /* 底部导航在手机框内粘性定位（不随内容滚动） */
+      .phone-frame .bottom-nav {
+        position: sticky;
+        bottom: 0;
+        left: 0; right: 0;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .phone-frame .toast {
+        position: absolute;
+        top: 12px;
+      }
+
+      .modal-overlay {
+        position: absolute !important;
+      }
+
+      /* 弹窗宽度约束在手机框内 */
+      .modal-content {
+        max-width: 100%;
+      }
+    }
+
+    /* 移动端 (≤640px) — 全屏无外壳 */
+    @media (max-width: 640px) {
+      body {
+        max-width: 100%;
+        min-height: 100dvh;
+        padding-bottom: calc(var(--nav-height) + 16px);
+      }
+
+      .phone-status-bar,
+      .phone-home-indicator {
+        display: none;
+      }
+
+      .phone-frame {
+        width: 100%;
+        height: auto;
+      }
+
+      .phone-screen {
+        overflow: visible;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .phone-screen::-webkit-scrollbar { display: none; }
+
+      .modal-overlay {
+        position: fixed !important;
+      }
+    }
+
+    /* --- 页面容器 --- */
+    .page {
+      display: none;
+      padding: 16px;
+      padding-top: 20px;
+      animation: fadeIn 0.25s ease;
+    }
+    .page.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- 底部导航 --- */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: var(--max-width);
+      height: var(--nav-height);
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 16px;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      transition: color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      min-width: 64px;
+    }
+    .nav-btn.active { color: var(--color-primary); }
+    .nav-btn svg { width: 22px; height: 22px; }
+
+    /* ============================================================
+       主页
+       ============================================================ */
+
+    .quote-area { text-align: center; padding: 8px 0 16px; }
+    .quote-text {
+      font-size: 15px;
+      color: var(--color-text-secondary);
+      font-style: italic;
+      letter-spacing: 0.5px;
+      transition: opacity 0.5s ease;
+    }
+
+    /* 水杯动画 */
+    .cup-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0 20px;
+    }
+    .cup-wrapper {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .cup-body {
+      position: relative;
+      width: 100px;
+      height: 140px;
+      border: 3px solid var(--color-glass-border);
+      border-top: none;
+      border-radius: 0 0 20px 20px;
+      background: rgba(255,255,255,0.35);
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(59,130,246,0.08);
+    }
+    .water-fill {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 0%;
+      background: linear-gradient(180deg,
+        rgba(96,165,250,0.7) 0%,
+        rgba(59,130,246,0.85) 40%,
+        rgba(37,99,235,0.9) 100%);
+      transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+    .wave {
+      position: absolute;
+      top: -20px;
+      left: -50%;
+      width: 200%;
+      height: 24px;
+      border-radius: 40%;
+      opacity: 0.6;
+    }
+    .wave-1 {
+      background: rgba(255,255,255,0.35);
+      animation: waveDrift 3.5s linear infinite;
+    }
+    .wave-2 {
+      background: rgba(255,255,255,0.2);
+      animation: waveDrift 5s linear infinite reverse;
+      top: -14px;
+    }
+    @keyframes waveDrift {
+      0%   { transform: translateX(0) rotate(0deg); }
+      50%  { transform: translateX(-25%) rotate(2deg); }
+      100% { transform: translateX(-50%) rotate(0deg); }
+    }
+    .cup-handle {
+      position: absolute;
+      right: -18px;
+      top: 28px;
+      width: 20px;
+      height: 50px;
+      border: 3px solid var(--color-glass-border);
+      border-left: none;
+      border-radius: 0 14px 14px 0;
+    }
+    .cup-ticks {
+      position: absolute;
+      left: 0; right: 0; bottom: 0; top: 0;
+    }
+    .tick {
+      position: absolute;
+      left: 6px; right: 6px;
+      height: 1px;
+      background: var(--color-glass-border);
+      opacity: 0.5;
+    }
+    .intake-display { margin-top: 12px; text-align: center; }
+    .intake-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--color-primary);
+      transition: all 0.3s;
+    }
+    .intake-unit { font-size: 16px; color: var(--color-text-secondary); margin-left: 2px; }
+    .intake-goal { font-size: 13px; color: var(--color-text-muted); margin-left: 4px; }
+    .intake-percent {
+      font-size: 13px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+      transition: all 0.3s;
+    }
+
+    /* 快捷按钮 */
+    .quick-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      padding: 0 0 12px;
+    }
+    .btn-quick {
+      flex: 1;
+      max-width: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 14px 8px;
+      border: 2px solid var(--color-primary);
+      background: var(--color-surface);
+      color: var(--color-primary);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .btn-quick:active {
+      background: var(--color-primary);
+      color: #fff;
+      transform: scale(0.96);
+    }
+    .btn-vol { font-size: 22px; }
+    .btn-unit { font-size: 12px; opacity: 0.8; }
+
+    /* 自定义按钮 */
+    .btn-custom {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 12px;
+      margin: 0 0 16px;
+      border: 2px dashed var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text-secondary);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.15s;
+    }
+    .btn-custom:active {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: var(--color-primary-bg);
+    }
+
+    /* 今日时间线 */
+    .timeline-section { margin-top: 4px; }
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--color-primary);
+      border-radius: 2px;
+    }
+    .timeline-list { display: flex; flex-direction: column; gap: 8px; }
+    .timeline-empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--color-text-muted);
+    }
+    .timeline-empty .sub { font-size: 13px; margin-top: 4px; }
+    .timeline-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--color-surface);
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+    .timeline-item:active { transform: scale(0.99); }
+    .tl-time {
+      font-size: 13px;
+      color: var(--color-text-muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 40px;
+      text-align: center;
+    }
+    .tl-info { flex: 1; }
+    .tl-volume { font-size: 18px; font-weight: 700; color: var(--color-text); }
+    .tl-unit { font-size: 12px; color: var(--color-text-muted); margin-left: 2px; }
+    .tl-type { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+    .tl-source {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+    }
+    .tl-note { font-size: 11px; color: var(--color-text-muted); font-style: italic; margin-top: 2px; }
+    .tl-actions { display: flex; gap: 4px; }
+    .tl-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      color: var(--color-text-muted);
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+    .tl-btn:hover { background: var(--color-bg); }
+    .tl-btn.tl-edit:hover { color: var(--color-primary); }
+    .tl-btn.tl-delete:hover { color: var(--color-danger); }
+
+    /* ============================================================
+       统计页
+       ============================================================ */
+
+    .stats-toggles {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+    .toggle-group {
+      display: flex;
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .toggle-btn {
+      padding: 8px 16px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .toggle-btn.active { background: var(--color-primary); color: #fff; }
+
+    .stats-panel {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
+    }
+    .stats-panel.hidden { display: none; }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    /* 日历热力图 */
+    .calendar-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+    .calendar-cell {
+      aspect-ratio: 1;
+      border-radius: 5px;
+      background: #E2E8F0;
+      font-size: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+      transition: transform 0.15s;
+      min-width: 0;
+      overflow: hidden;
+      line-height: 1.2;
+      padding: 2px 1px;
+    }
+    .calendar-cell .cell-date {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+    }
+    .calendar-cell .cell-intake {
+      font-size: 9px;
+      color: #64748B;
+      margin-top: 1px;
+    }
+
+    /* FIX #3: 未来日期半透明显示，不隐藏 */
+    .calendar-cell.future {
+      background: #F1F5F9;
+      opacity: 0.45;
+    }
+    .calendar-cell.future .cell-intake {
+      visibility: hidden;
+    }
+    .calendar-cell.pad {
+      background: transparent;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .calendar-legend {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    /* 柱状图 */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 200px;
+      padding: 0 4px;
+    }
+    .bar-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .bar-value {
+      font-size: 9px;
+      color: var(--color-text-secondary);
+      margin-bottom: 3px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .bar-fill {
+      width: 100%;
+      max-width: 32px;
+      background: var(--color-primary);
+      border-radius: 6px 6px 0 0;
+      min-height: 4px;
+      transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .bar-fill.goal-reached { background: var(--color-success); }
+    .bar-label {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+    .bar-legend {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 8px;
+    }
+
+    /* 统计摘要 */
+    .stats-summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .summary-card {
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .summary-value {
+      display: block;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .summary-label { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+
+    /* ============================================================
+       设置页
+       ============================================================ */
+
+    .settings-section {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .input-row { margin-bottom: 12px; }
+    .input-row label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      margin-bottom: 4px;
+    }
+    .input-row input,
+    .input-row select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-bg);
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .input-row input:focus,
+    .input-row select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+    .input-row select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .hint { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+
+    /* 按钮 */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 24px;
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn-primary:active { background: var(--color-primary-dark); transform: scale(0.97); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn-secondary:active { background: var(--color-bg); transform: scale(0.97); }
+    .btn-full { width: 100%; }
+    .btn-danger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      background: var(--color-surface);
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger);
+      border-radius: var(--radius);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn-danger:active { background: var(--color-danger-light); }
+
+    /* ============================================================
+       FIX #4a: 高级设置折叠
+       ============================================================ */
+    .advanced-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 6px 0;
+      font-family: inherit;
+      transition: color 0.15s;
+      margin-bottom: 8px;
+    }
+    .advanced-toggle:hover { color: var(--color-primary); }
+    .advanced-toggle .arrow {
+      display: inline-block;
+      transition: transform 0.2s;
+      font-size: 10px;
+    }
+    .advanced-toggle.open .arrow { transform: rotate(90deg); }
+    .advanced-panel { display: none; }
+    .advanced-panel.open { display: block; }
+
+    /* 二维码 */
+    .qr-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .preset-label { font-size: 12px; color: var(--color-text-muted); margin-right: 2px; }
+    .btn-preset {
+      padding: 5px 10px;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+      border-radius: 14px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+    .btn-preset:active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+
+    .qr-result { margin-top: 16px; text-align: center; }
+    .qr-result.hidden { display: none; }
+    #qr-code-container {
+      display: inline-block;
+      padding: 12px;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    #qr-code-container canvas {
+      display: block;
+    }
+    .qr-info {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin: 8px 0;
+      word-break: break-all;
+    }
+    .qr-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+    .backup-actions { display: flex; gap: 8px; }
+    .backup-actions .btn-secondary { flex: 1; }
+
+    .about-info p { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 2px; }
+
+    /* 导出弹窗 */
+    .export-pre {
+      background: #1E293B;
+      color: #E2E8F0;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-family: monospace;
+      max-height: 50vh;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .export-actions { display: flex; gap: 8px; }
+    .export-actions .btn-primary { flex: 1; }
+    .export-actions .btn-secondary { flex: 1; }
+
+    /* ============================================================
+       弹窗
+       ============================================================ */
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-overlay.hidden { display: none; }
+
+    .modal-content {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      width: 100%;
+      max-width: var(--max-width);
+      max-height: 85dvh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      position: sticky;
+      top: 0;
+      background: var(--color-surface);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      z-index: 1;
+    }
+    .modal-header h3 { font-size: 17px; font-weight: 600; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.15s;
+    }
+    .modal-close:active { background: var(--color-bg); }
+    .modal-body { padding: 20px; }
+
+    /* 警告弹窗 */
+    .modal-alert .alert-body { text-align: center; padding: 28px 20px; }
+    .alert-icon { font-size: 44px; margin-bottom: 12px; }
+    .alert-body h3 { font-size: 17px; margin-bottom: 8px; }
+    .alert-body p { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 20px; }
+    .alert-actions { display: flex; gap: 10px; justify-content: center; }
+    .alert-actions .btn-secondary,
+    .alert-actions .btn-primary { flex: 1; }
+
+    /* 图片预览弹窗 */
+    .image-preview-body { text-align: center; }
+    .image-preview-body img { display: block; margin: 0 auto; }
+    .image-preview-hint {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      text-align: center;
+    }
+
+    /* 首次引导 */
+    .onboarding-desc { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 16px; line-height: 1.7; }
+
+    /* 自定义记录 */
+    .volume-picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+    .vol-btn {
+      padding: 10px 4px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--color-text);
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .vol-btn.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .vol-btn:active { transform: scale(0.95); }
+
+    .custom-volume-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-family: inherit;
+      margin-bottom: 12px;
+      color: var(--color-text);
+    }
+    .custom-volume-input:focus { outline: none; border-color: var(--color-primary); }
+
+    .type-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .type-btn {
+      padding: 10px 4px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--color-text);
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .type-btn.active {
+      border-color: var(--color-primary);
+      background: var(--color-primary-bg);
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+    .type-btn:active { transform: scale(0.95); }
+
+    .note-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: inherit;
+      margin-bottom: 14px;
+      resize: vertical;
+      color: var(--color-text);
+    }
+    .note-input:focus { outline: none; border-color: var(--color-primary); }
+
+    /* ============================================================
+       FIX #6: 扫码成功页
+       ============================================================ */
+    .scan-success-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 50%, #A7F3D0 100%);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px;
+      animation: fadeIn 0.3s ease;
+    }
+    .scan-success-overlay.hidden { display: none; }
+
+    /* 桌面端限制在手机框内 */
+    @media (min-width: 641px) {
+      .scan-success-overlay {
+        position: absolute;
+        border-radius: 36px;
+      }
+    }
+
+    .scan-success-icon {
+      font-size: 72px;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      margin-bottom: 16px;
+    }
+    @keyframes popIn {
+      0%   { transform: scale(0); opacity: 0; }
+      80%  { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .scan-success-volume {
+      font-size: 42px;
+      font-weight: 800;
+      color: #065F46;
+      letter-spacing: -1px;
+      margin-bottom: 4px;
+    }
+    .scan-success-type {
+      font-size: 18px;
+      color: #047857;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .scan-success-quote {
+      font-size: 16px;
+      color: #065F46;
+      font-style: italic;
+      opacity: 0.8;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .scan-success-countdown {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 4px solid #10B981;
+      font-size: 24px;
+      font-weight: 700;
+      color: #065F46;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.5);
+    }
+    .scan-success-hint {
+      font-size: 13px;
+      color: #047857;
+      opacity: 0.7;
+      margin-bottom: 20px;
+    }
+    .scan-success-dismiss {
+      padding: 12px 40px;
+      background: #059669;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      box-shadow: 0 4px 16px rgba(5,150,105,0.3);
+    }
+    .scan-success-dismiss:active {
+      background: #047857;
+      transform: scale(0.96);
+    }
+
+    /* --- Toast --- */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      background: #1E293B;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 600;
+      z-index: 300;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: var(--shadow-lg);
+      white-space: nowrap;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: #065F46; }
+    .toast.warning { background: #92400E; }
+    .toast.error { background: #991B1B; }
+
+    .hidden { display: none !important; }
+
+    /* 打印 */
+    @media print {
+      body { background: #fff; padding: 0; max-width: 100%; }
+      .phone-frame { border: none; box-shadow: none; width: 100%; height: auto; border-radius: 0; }
+      .phone-status-bar, .phone-home-indicator, .bottom-nav { display: none !important; }
+      .page { display: none !important; }
+      .page.active { display: block !important; padding: 0; }
+    }
+
+    @media (min-width: 420px) {
+      .btn-quick { padding: 16px 12px; }
+      .btn-vol { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ 手机外壳 (桌面端显示) ============ -->
+  <div class="phone-frame" id="phone-frame">
+    <!-- FIX #1: iPhone 风格状态栏 -->
+    <div class="phone-status-bar">
+      <div class="phone-status-left">
+        <span class="phone-time-text" id="phone-time-text">9:41</span>
+      </div>
+      <div class="phone-status-right">
+        <svg class="status-icon" width="15" height="11" viewBox="0 0 15 11"><rect x="0" y="7" width="3" height="4" rx="0.5" fill="white"/><rect x="4" y="5" width="3" height="6" rx="0.5" fill="white"/><rect x="8" y="3" width="3" height="8" rx="0.5" fill="white"/><rect x="12" y="0" width="3" height="11" rx="0.5" fill="white" opacity="0.4"/></svg>
+        <span class="status-icon" style="font-size:11px;">WiFi</span>
+        <svg class="status-icon" width="17" height="11" viewBox="0 0 25 12"><rect x="0" y="0" width="21" height="11" rx="3" fill="none" stroke="white" stroke-width="2"/><rect x="3" y="3" width="15" height="5" rx="1" fill="white"/><rect x="22" y="3.5" width="3" height="4" rx="1" fill="white"/></svg>
+      </div>
+    </div>
+
+    <div class="phone-screen" id="phone-screen">
+
+      <!-- ==================== Toast 提示 ==================== -->
+      <div id="toast" class="toast"></div>
+
+      <!-- ==================== FIX #6: 扫码成功页 ==================== -->
+      <div id="scan-success" class="scan-success-overlay hidden">
+        <div class="scan-success-icon" id="scan-success-icon">✅</div>
+        <div class="scan-success-volume" id="scan-success-volume"></div>
+        <div class="scan-success-type" id="scan-success-type"></div>
+        <div class="scan-success-quote" id="scan-success-quote"></div>
+        <div class="scan-success-countdown" id="scan-success-countdown">10</div>
+        <div class="scan-success-hint">秒后自动关闭</div>
+        <button class="scan-success-dismiss" id="scan-success-dismiss">我知道了</button>
+      </div>
+
+      <!-- ==================== 主页 ==================== -->
+      <div id="page-home" class="page active">
+
+        <!-- 随机文案 -->
+        <div class="quote-area">
+          <p id="quote-text" class="quote-text"></p>
+        </div>
+
+        <!-- 水杯动画 -->
+        <div class="cup-section">
+          <div class="cup-wrapper">
+            <div class="cup-body">
+              <div class="water-fill" id="water-fill">
+                <div class="wave wave-1"></div>
+                <div class="wave wave-2"></div>
+              </div>
+              <div class="cup-ticks">
+                <span class="tick" style="bottom:25%"></span>
+                <span class="tick" style="bottom:50%"></span>
+                <span class="tick" style="bottom:75%"></span>
+              </div>
+            </div>
+            <div class="cup-handle"></div>
+          </div>
+          <div class="intake-display">
+            <span class="intake-value" id="intake-value">0</span>
+            <span class="intake-unit">ml</span>
+            <span class="intake-goal" id="intake-goal">/ 目标 2000 ml</span>
+          </div>
+          <div class="intake-percent" id="intake-percent">0%</div>
+        </div>
+
+        <!-- 快捷记录按钮 -->
+        <div class="quick-buttons">
+          <button class="btn-quick btn-water" data-volume="200" data-type="water">
+            <span class="btn-vol">200</span><span class="btn-unit">ml</span>
+          </button>
+          <button class="btn-quick btn-water" data-volume="300" data-type="water">
+            <span class="btn-vol">300</span><span class="btn-unit">ml</span>
+          </button>
+          <button class="btn-quick btn-water" data-volume="500" data-type="water">
+            <span class="btn-vol">500</span><span class="btn-unit">ml</span>
+          </button>
+        </div>
+
+        <!-- 自定义按钮 -->
+        <button class="btn-custom" id="btn-custom-record">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          自定义记录
+        </button>
+
+        <!-- 今日时间线 -->
+        <div class="timeline-section">
+          <h3 class="section-title">今日记录</h3>
+          <div id="timeline-list" class="timeline-list"></div>
+        </div>
+      </div>
+
+      <!-- ==================== 统计页 ==================== -->
+      <div id="page-stats" class="page">
+        <div class="stats-toggles">
+          <div class="toggle-group">
+            <button class="toggle-btn active" data-period="month">本月</button>
+            <button class="toggle-btn" data-period="year">本年</button>
+          </div>
+          <div class="toggle-group">
+            <button class="toggle-btn active" data-liquid="pure">纯水量</button>
+            <button class="toggle-btn" data-liquid="total">总液体</button>
+          </div>
+        </div>
+
+        <div id="calendar-view" class="stats-panel">
+          <h3 class="panel-title" id="calendar-title">2026年 6月</h3>
+          <div class="calendar-header">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          </div>
+          <div id="calendar-grid" class="calendar-grid"></div>
+          <div class="calendar-legend">
+            <span>少</span>
+            <span class="legend-dot" style="background:#E2E8F0"></span>
+            <span class="legend-dot" style="background:#93C5FD"></span>
+            <span class="legend-dot" style="background:#3B82F6"></span>
+            <span class="legend-dot" style="background:#1D4ED8"></span>
+            <span class="legend-dot" style="background:#0F172A"></span>
+            <span>多</span>
+          </div>
+        </div>
+
+        <div id="year-view" class="stats-panel hidden">
+          <h3 class="panel-title" id="year-title">2026年</h3>
+          <div id="bar-chart" class="bar-chart"></div>
+          <div class="bar-legend">
+            <span>1月</span><span>6月</span><span>12月</span>
+          </div>
+        </div>
+
+        <div class="stats-summary" id="stats-summary">
+          <div class="summary-card">
+            <span class="summary-value" id="stat-avg">0</span>
+            <span class="summary-label">日均/ml</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-value" id="stat-best">0</span>
+            <span class="summary-label">最高/ml</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-value" id="stat-streak">0</span>
+            <span class="summary-label">连续达标/天</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-value" id="stat-rate">0%</span>
+            <span class="summary-label">达标率</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== 设置页 ==================== -->
+      <div id="page-settings" class="page">
+
+        <div class="settings-section">
+          <h3 class="section-title">每日目标</h3>
+          <div class="goal-setting">
+            <div class="input-row">
+              <label>体重 (kg)</label>
+              <input type="number" id="input-weight" min="20" max="300" placeholder="输入体重自动计算">
+            </div>
+            <div class="input-row">
+              <label>目标水量 (ml)</label>
+              <input type="number" id="input-goal" min="500" max="10000" placeholder="500-10000">
+            </div>
+            <button class="btn-primary" id="btn-save-goal">保存目标</button>
+            <p class="hint">推荐量：体重 × 30ml，范围 500-10000ml</p>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="section-title">二维码生成器</h3>
+          <div class="qr-generator">
+            <div class="input-row">
+              <label>容量 (ml)</label>
+              <input type="number" id="input-qr-volume" min="50" max="5000" placeholder="如 300" value="300">
+            </div>
+            <div class="input-row">
+              <label>饮品类型</label>
+              <select id="input-qr-type">
+                <option value="water">💧 纯水</option>
+                <option value="tea">🍵 茶</option>
+                <option value="coffee">☕ 咖啡</option>
+                <option value="milktea">🧋 奶茶</option>
+                <option value="milk">🥛 牛奶</option>
+                <option value="juice">🧃 果汁</option>
+                <option value="other">🥤 其他</option>
+              </select>
+            </div>
+            <div class="input-row hidden" id="row-custom-type">
+              <label>自定义类型名称</label>
+              <input type="text" id="input-custom-type" placeholder="如：运动饮料、豆浆">
+            </div>
+
+            <!-- FIX #4a: 高级设置折叠 -->
+            <button class="advanced-toggle" id="advanced-toggle">
+              <span class="arrow">▶</span> 高级设置
+            </button>
+            <div class="advanced-panel" id="advanced-panel">
+              <div class="input-row">
+                <label>基础 URL <span style="color:var(--color-danger)">*</span></label>
+                <input type="text" id="input-base-url" placeholder="自动检测中...">
+                <p class="hint">二维码扫描后跳转的地址。默认使用当前访问地址，无需修改。</p>
+              </div>
+            </div>
+
+            <div class="qr-presets">
+              <span class="preset-label">快捷生成：</span>
+              <button class="btn-preset" data-v="200" data-t="water">200ml 纯水</button>
+              <button class="btn-preset" data-v="300" data-t="water">300ml 纯水</button>
+              <button class="btn-preset" data-v="500" data-t="water">500ml 纯水</button>
+              <button class="btn-preset" data-v="0" data-t="custom">万能码</button>
+            </div>
+            <button class="btn-primary" id="btn-generate-qr">生成二维码</button>
+            <div id="qr-result" class="qr-result hidden">
+              <div id="qr-code-container"></div>
+              <p class="qr-info" id="qr-info"></p>
+              <div class="qr-actions">
+                <button class="btn-secondary" id="btn-save-qr">💾 保存二维码</button>
+                <button class="btn-secondary" id="btn-print-qr">🖼 保存组合二维码</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="section-title">数据管理</h3>
+          <div class="backup-actions">
+            <button class="btn-secondary" id="btn-export">📤 查看/导出数据</button>
+            <button class="btn-secondary" id="btn-import">📥 导入 JSON</button>
+            <input type="file" id="import-file" accept=".json" class="hidden">
+          </div>
+          <button class="btn-danger" id="btn-clear-data">🗑 清除所有数据</button>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="section-title">关于水记</h3>
+          <div class="about-info">
+            <p>水记 v1.0 — 极简饮水追踪工具</p>
+            <p class="hint">扫一下二维码 = 完成一次记录</p>
+            <p class="hint">纯前端应用，数据安全存储在你的手机中</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== 底部导航 ==================== -->
+      <nav id="bottom-nav" class="bottom-nav">
+        <button class="nav-btn active" data-page="home">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>主页</span>
+        </button>
+        <button class="nav-btn" data-page="stats">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>统计</span>
+        </button>
+        <button class="nav-btn" data-page="settings">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>设置</span>
+        </button>
+      </nav>
+
+    </div><!-- /phone-screen -->
+    <div class="phone-home-indicator"></div>
+  </div><!-- /phone-frame -->
+
+  <!-- ==================== 自定义记录弹窗 ==================== -->
+  <div id="modal-custom" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>自定义记录</h3>
+        <button class="modal-close" data-modal="modal-custom">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="volume-picker">
+          <button class="vol-btn" data-vol="100">100</button>
+          <button class="vol-btn" data-vol="150">150</button>
+          <button class="vol-btn" data-vol="200">200</button>
+          <button class="vol-btn" data-vol="250">250</button>
+          <button class="vol-btn active" data-vol="300">300</button>
+          <button class="vol-btn" data-vol="400">400</button>
+          <button class="vol-btn" data-vol="500">500</button>
+          <button class="vol-btn" data-vol="600">600</button>
+        </div>
+        <input type="number" id="custom-volume" class="custom-volume-input" placeholder="或手动输入水量 (ml)" min="1" max="99999">
+        <div class="type-picker">
+          <button class="type-btn active" data-type="water">💧 纯水</button>
+          <button class="type-btn" data-type="tea">🍵 茶</button>
+          <button class="type-btn" data-type="coffee">☕ 咖啡</button>
+          <button class="type-btn" data-type="milktea">🧋 奶茶</button>
+          <button class="type-btn" data-type="milk">🥛 牛奶</button>
+          <button class="type-btn" data-type="juice">🧃 果汁</button>
+          <button class="type-btn" data-type="other">🥤 其他</button>
+        </div>
+        <textarea id="custom-note" class="note-input" placeholder="备注（可选）" rows="2"></textarea>
+        <button class="btn-primary btn-full" id="btn-submit-custom">确认记录</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 编辑记录弹窗 ==================== -->
+  <div id="modal-edit" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>编辑记录</h3>
+        <button class="modal-close" data-modal="modal-edit">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-record-id">
+        <div class="input-row">
+          <label>水量 (ml)</label>
+          <input type="number" id="edit-volume" min="1" max="99999">
+        </div>
+        <div class="input-row">
+          <label>饮品类型</label>
+          <select id="edit-type">
+            <option value="water">💧 纯水</option>
+            <option value="tea">🍵 茶</option>
+            <option value="coffee">☕ 咖啡</option>
+            <option value="milktea">🧋 奶茶</option>
+            <option value="milk">🥛 牛奶</option>
+            <option value="juice">🧃 果汁</option>
+            <option value="other">🥤 其他</option>
+          </select>
+        </div>
+        <textarea id="edit-note" class="note-input" placeholder="备注（可选）" rows="2"></textarea>
+        <button class="btn-primary btn-full" id="btn-save-edit">保存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 重复扫码弹窗 ==================== -->
+  <div id="modal-duplicate" class="modal-overlay hidden">
+    <div class="modal-content modal-alert">
+      <div class="modal-body alert-body">
+        <div class="alert-icon">⚠️</div>
+        <h3>检测到重复扫码</h3>
+        <p id="duplicate-msg">3分钟内已记录过相同水量和类型</p>
+        <div class="alert-actions">
+          <button class="btn-secondary" data-modal="modal-duplicate">取消</button>
+          <button class="btn-primary" id="btn-force-record">强行记录</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 确认弹窗 ==================== -->
+  <div id="modal-confirm" class="modal-overlay hidden">
+    <div class="modal-content modal-alert">
+      <div class="modal-body alert-body">
+        <div class="alert-icon" id="confirm-icon">⚠️</div>
+        <h3 id="confirm-title">确认操作</h3>
+        <p id="confirm-msg"></p>
+        <div class="alert-actions">
+          <button class="btn-secondary" id="btn-confirm-cancel">取消</button>
+          <button class="btn-primary" id="btn-confirm-ok">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 图片预览弹窗 ==================== -->
+  <div id="modal-image" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>保存二维码</h3>
+        <button class="modal-close" data-modal="modal-image">&times;</button>
+      </div>
+      <div class="modal-body image-preview-body">
+        <img id="image-preview-img" src="" alt="二维码" style="width:100%;border-radius:8px;">
+        <p class="image-preview-hint">👆 长按上方图片，选择"保存图片"即可保存到相册</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 首次引导弹窗 ==================== -->
+  <div id="modal-onboarding" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>👋 欢迎使用水记</h3>
+      </div>
+      <div class="modal-body">
+        <p class="onboarding-desc">水记帮你追踪每日饮水，扫一下二维码 = 完成一次记录。先设置每日目标吧：</p>
+        <div class="input-row">
+          <label>你的体重 (kg)</label>
+          <input type="number" id="onboard-weight" min="20" max="300" placeholder="请输入体重">
+        </div>
+        <div class="input-row">
+          <label>每日目标水量 (ml)</label>
+          <input type="number" id="onboard-goal" min="500" max="10000" placeholder="自动计算或手动输入">
+        </div>
+        <p class="hint">推荐：体重 × 30ml = <span id="onboard-recommend">-</span> ml</p>
+        <button class="btn-primary btn-full" id="btn-onboard-start">开始使用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 导出数据弹窗 ==================== -->
+  <div id="modal-export" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📤 数据导出</h3>
+        <button class="modal-close" data-modal="modal-export">&times;</button>
+      </div>
+      <div class="modal-body">
+        <pre id="export-content" class="export-pre"></pre>
+        <div class="export-actions">
+          <button class="btn-primary" id="btn-copy-json">📋 复制到剪贴板</button>
+          <button class="btn-secondary" id="btn-download-json">💾 下载 JSON 文件</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 二维码库 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <!-- ============================================================
+       全部 JavaScript（内嵌）
+       ============================================================ -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* ==========================================================
+       1. 常量与配置
+       ========================================================== */
+
+    var STORAGE_KEY = 'shuiji_records';
+    var GOAL_KEY = 'shuiji_goal';
+    var WEIGHT_KEY = 'shuiji_weight';
+    var LAST_CUSTOM_KEY = 'shuiji_lastCustom';
+    var DUPLICATE_WINDOW = 3 * 60 * 1000;
+    var DEFAULT_GOAL = 2000;
+
+    var TYPE_LABELS = {
+      water: '纯水',
+      tea: '茶',
+      coffee: '咖啡',
+      milktea: '奶茶',
+      milk: '牛奶',
+      juice: '果汁',
+      other: '其他'
+    };
+
+    var TYPE_EMOJI = {
+      water: '💧',
+      tea: '🍵',
+      coffee: '☕',
+      milktea: '🧋',
+      milk: '🥛',
+      juice: '🧃',
+      other: '🥤'
+    };
+
+    var SOURCE_LABELS = {
+      scan: '扫码',
+      click: '按钮',
+      custom: '自定义'
+    };
+
+    var QUOTES = [
+      '💪 喝口水，继续战斗！',
+      '🌟 每一杯水都在为你的身体加油',
+      '🧠 大脑 75% 是水，别让它干涸',
+      '⚡ 补水 = 补能量',
+      '🎯 今天的目标，从一杯水开始',
+      '🌊 细水长流，健康无忧',
+      '🔥 代谢需要水，就像引擎需要油',
+      '🍃 水是生命之源，也是最便宜的保健品',
+      '💙 你的肾脏会感谢你的每一杯水',
+      '🏃 保持水润，保持活力',
+      '✨ 皮肤好的秘诀：多喝水',
+      '🎉 喝完这杯，离目标又近了一步',
+      '🌸 好习惯从一杯水开始',
+      '🦾 水分充足，工作效率翻倍',
+      '🌈 让喝水成为一种享受'
+    ];
+
+    var currentPage = 'home';
+
+    /* ==========================================================
+       2. 工具函数
+       ========================================================== */
+
+    function $(sel) { return document.querySelector(sel); }
+    function $$(sel) { return document.querySelectorAll(sel); }
+
+    function genId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function todayStart() {
+      var d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    }
+
+    function formatTime(ts) {
+      var d = new Date(ts);
+      return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    }
+
+    function dayStart(ts) {
+      var d = new Date(ts);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    }
+
+    function daysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function dayOfWeek(year, month, day) {
+      return new Date(year, month, day).getDay();
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function randomQuote() {
+      return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    }
+
+    /* ==========================================================
+       3. 数据存储层
+       ========================================================== */
+
+    function loadRecords() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveRecords(records) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      } catch (e) {
+        showToast('存储空间不足，请清理数据', 'error');
+      }
+    }
+
+    function loadGoal() {
+      var v = localStorage.getItem(GOAL_KEY);
+      return v ? parseInt(v, 10) : DEFAULT_GOAL;
+    }
+
+    function saveGoal(goal) {
+      localStorage.setItem(GOAL_KEY, goal);
+    }
+
+    function loadWeight() {
+      var v = localStorage.getItem(WEIGHT_KEY);
+      return v ? parseInt(v, 10) : null;
+    }
+
+    function saveWeight(w) {
+      localStorage.setItem(WEIGHT_KEY, w);
+    }
+
+    function loadLastCustom() {
+      try {
+        var raw = localStorage.getItem(LAST_CUSTOM_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function saveLastCustom(custom) {
+      localStorage.setItem(LAST_CUSTOM_KEY, JSON.stringify(custom));
+    }
+
+    function hasOnboarded() {
+      return localStorage.getItem('shuiji_onboarded') === '1';
+    }
+
+    function setOnboarded() {
+      localStorage.setItem('shuiji_onboarded', '1');
+    }
+
+    /* ==========================================================
+       4. 记录操作
+       ========================================================== */
+
+    function addRecord(volume, type, source, note) {
+      var records = loadRecords();
+      var record = {
+        id: genId(),
+        timestamp: Date.now(),
+        volume: parseInt(volume, 10) || 0,
+        type: type || 'water',
+        source: source || 'click',
+        note: note || ''
+      };
+      records.unshift(record);
+      saveRecords(records);
+      if (source === 'custom') {
+        saveLastCustom({ volume: record.volume, type: record.type });
+      }
+      return record;
+    }
+
+    function updateRecord(id, volume, type, note) {
+      var records = loadRecords();
+      for (var i = 0; i < records.length; i++) {
+        if (records[i].id === id) {
+          records[i].volume = parseInt(volume, 10) || 0;
+          records[i].type = type || records[i].type;
+          if (typeof note !== 'undefined') records[i].note = note || '';
+          saveRecords(records);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function deleteRecord(id) {
+      var records = loadRecords();
+      var filtered = records.filter(function (r) { return r.id !== id; });
+      if (filtered.length !== records.length) {
+        saveRecords(filtered);
+        return true;
+      }
+      return false;
+    }
+
+    function checkDuplicate(volume, type) {
+      var records = loadRecords();
+      var now = Date.now();
+      var cutoff = now - DUPLICATE_WINDOW;
+      for (var i = 0; i < records.length; i++) {
+        var r = records[i];
+        if (r.timestamp > cutoff && r.volume === volume && r.type === type) {
+          return r;
+        }
+      }
+      return null;
+    }
+
+    function getTodayRecords() {
+      var records = loadRecords();
+      var start = todayStart();
+      return records.filter(function (r) { return r.timestamp >= start; });
+    }
+
+    function getTodayIntake(pureOnly) {
+      var today = getTodayRecords();
+      var total = 0;
+      for (var i = 0; i < today.length; i++) {
+        if (pureOnly && today[i].type !== 'water') continue;
+        total += today[i].volume;
+      }
+      return total;
+    }
+
+    /* ==========================================================
+       5. 统计计算
+       ========================================================== */
+
+    function getDayIntake(ts, pureOnly) {
+      var records = loadRecords();
+      var dStart = dayStart(ts);
+      var dEnd = dStart + 86400000;
+      var total = 0;
+      for (var i = 0; i < records.length; i++) {
+        var r = records[i];
+        if (r.timestamp >= dStart && r.timestamp < dEnd) {
+          if (pureOnly && r.type !== 'water') continue;
+          total += r.volume;
+        }
+      }
+      return total;
+    }
+
+    function getMonthDailyTotals(year, month, pureOnly) {
+      var days = daysInMonth(year, month);
+      var totals = [];
+      for (var d = 1; d <= days; d++) {
+        var ts = new Date(year, month, d).getTime();
+        totals.push(getDayIntake(ts, pureOnly));
+      }
+      return totals;
+    }
+
+    function getYearMonthlyTotals(year, pureOnly) {
+      var records = loadRecords();
+      var totals = new Array(12).fill(0);
+      for (var i = 0; i < records.length; i++) {
+        var r = records[i];
+        var d = new Date(r.timestamp);
+        if (d.getFullYear() === year) {
+          if (pureOnly && r.type !== 'water') continue;
+          totals[d.getMonth()] += r.volume;
+        }
+      }
+      return totals;
+    }
+
+    function getStreak() {
+      var records = loadRecords();
+      var goal = loadGoal();
+      if (records.length === 0) return 0;
+
+      var dayMap = {};
+      for (var i = 0; i < records.length; i++) {
+        var dk = dayStart(records[i].timestamp);
+        if (!dayMap[dk]) dayMap[dk] = 0;
+        dayMap[dk] += records[i].volume;
+      }
+
+      var streak = 0;
+      var today = todayStart();
+      var check = today;
+
+      while (true) {
+        var intake = dayMap[check] || 0;
+        if (intake >= goal) {
+          streak++;
+          check -= 86400000;
+        } else {
+          if (check === today) {
+            check -= 86400000;
+            continue;
+          }
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function getGoalRate(days) {
+      var goal = loadGoal();
+      var achieved = 0;
+      for (var d = 0; d < days; d++) {
+        var ts = todayStart() - d * 86400000;
+        if (getDayIntake(ts, false) >= goal) achieved++;
+      }
+      return Math.round((achieved / days) * 100);
+    }
+
+    /* ==========================================================
+       6. UI 渲染
+       ========================================================== */
+
+    /* --- Toast --- */
+    var toastTimer = null;
+    function showToast(msg, type) {
+      var toast = $('#toast');
+      if (!toast) return;
+      clearTimeout(toastTimer);
+      toast.textContent = msg;
+      toast.className = 'toast ' + (type || '');
+      toast.offsetHeight;
+      toast.classList.add('show');
+      toastTimer = setTimeout(function () {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    /* --- 弹窗 --- */
+    function openModal(id) {
+      var modal = $('#' + id);
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      var modal = $('#' + id);
+      if (modal) modal.classList.add('hidden');
+    }
+
+    /** 自定义确认弹窗，替代原生 confirm() */
+    var _confirmResolve = null;
+    function showConfirm(title, msg, okText, icon) {
+      icon = icon || '⚠️';
+      okText = okText || '确定';
+      var iconEl = $('#confirm-icon'); if (iconEl) iconEl.textContent = icon;
+      var titleEl = $('#confirm-title'); if (titleEl) titleEl.textContent = title;
+      var msgEl = $('#confirm-msg'); if (msgEl) msgEl.textContent = msg;
+      var okBtn = $('#btn-confirm-ok'); if (okBtn) okBtn.textContent = okText;
+      openModal('modal-confirm');
+      return new Promise(function (resolve) {
+        _confirmResolve = resolve;
+      });
+    }
+
+    /* --- 页面切换 --- */
+    function switchPage(pageName) {
+      currentPage = pageName;
+      $$('.page').forEach(function (p) { p.classList.remove('active'); });
+      var target = $('#page-' + pageName);
+      if (target) target.classList.add('active');
+
+      $$('.nav-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.page === pageName);
+      });
+
+      if (pageName === 'home') renderHome();
+      if (pageName === 'stats') renderStats();
+      if (pageName === 'settings') renderSettings();
+    }
+
+    /* --- 主页渲染 --- */
+    function renderHome() {
+      renderQuote();
+      updateWaterCup();
+      renderTimeline();
+    }
+
+    function renderQuote() {
+      var el = $('#quote-text');
+      if (!el) return;
+      el.textContent = randomQuote();
+    }
+
+    function updateWaterCup() {
+      var intake = getTodayIntake(false);
+      var goal = loadGoal();
+      var percent = Math.min(intake / goal, 1);
+      var pct = Math.round(percent * 100);
+
+      var fill = $('#water-fill');
+      if (fill) fill.style.height = (percent * 100) + '%';
+
+      var valEl = $('#intake-value');
+      if (valEl) animateNumber(valEl, intake);
+
+      var goalEl = $('#intake-goal');
+      if (goalEl) goalEl.textContent = '/ 目标 ' + goal + ' ml';
+
+      var pctEl = $('#intake-percent');
+      if (pctEl) {
+        pctEl.textContent = pct + '%';
+        pctEl.style.color = pct >= 100 ? 'var(--color-success)' : '';
+        if (pct >= 100) pctEl.textContent += ' 🎉';
+      }
+    }
+
+    function animateNumber(el, target) {
+      var current = parseInt(el.textContent, 10) || 0;
+      if (current === target) { el.textContent = target; return; }
+      var diff = target - current;
+      var step = Math.max(Math.abs(Math.round(diff / 15)), 1);
+      var dir = diff > 0 ? 1 : -1;
+
+      function tick() {
+        var cur = parseInt(el.textContent, 10) || 0;
+        if ((dir > 0 && cur >= target) || (dir < 0 && cur <= target)) {
+          el.textContent = target;
+          return;
+        }
+        el.textContent = cur + step * dir;
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function renderTimeline() {
+      var list = $('#timeline-list');
+      if (!list) return;
+      var today = getTodayRecords();
+
+      if (today.length === 0) {
+        list.innerHTML =
+          '<div class="timeline-empty">' +
+            '<p>今天还没喝水哦</p>' +
+            '<p class="sub">点上方按钮记录第一杯吧 ☝️</p>' +
+          '</div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < today.length; i++) {
+        var r = today[i];
+        html +=
+          '<div class="timeline-item" data-id="' + r.id + '">' +
+            '<div class="tl-time">' + formatTime(r.timestamp) + '</div>' +
+            '<div class="tl-info">' +
+              '<span class="tl-volume">' + r.volume + '</span>' +
+              '<span class="tl-unit">ml</span>' +
+              '<span class="tl-type">' + (TYPE_EMOJI[r.type] || '') + ' ' + (TYPE_LABELS[r.type] || r.type) + '</span>' +
+              '<span class="tl-source">' + (SOURCE_LABELS[r.source] || r.source) + '</span>' +
+              (r.note ? '<div class="tl-note">' + escapeHtml(r.note) + '</div>' : '') +
+            '</div>' +
+            '<div class="tl-actions">' +
+              '<button class="tl-btn tl-edit" data-action="edit" data-id="' + r.id + '">✏️</button>' +
+              '<button class="tl-btn tl-delete" data-action="delete" data-id="' + r.id + '">🗑</button>' +
+            '</div>' +
+          '</div>';
+      }
+      list.innerHTML = html;
+    }
+
+    /* --- 统计页渲染 --- */
+    var statsPeriod = 'month';
+    var statsLiquid = 'pure';
+
+    function renderStats() {
+      renderCalendar();
+      renderBarChart();
+      renderSummary();
+    }
+
+    /** FIX #3: 显示完整月份，未来日期半透明 */
+    function renderCalendar() {
+      var now = new Date();
+      var year = now.getFullYear();
+      var month = now.getMonth();
+
+      var titleEl = $('#calendar-title');
+      if (titleEl) titleEl.textContent = year + '年 ' + (month + 1) + '月';
+
+      var grid = $('#calendar-grid');
+      if (!grid) return;
+
+      var days = daysInMonth(year, month);
+      var firstDow = dayOfWeek(year, month, 1);
+      var startOffset = firstDow === 0 ? 6 : firstDow - 1;
+
+      var pureOnly = statsLiquid === 'pure';
+      var totals = getMonthDailyTotals(year, month, pureOnly);
+      var goal = loadGoal();
+
+      var todayDate = now.getDate();
+      var thisMonth = now.getMonth();
+      var thisYear = now.getFullYear();
+
+      var html = '';
+      // 前置空白填充格
+      for (var b = 0; b < startOffset; b++) {
+        html += '<div class="calendar-cell pad"><span class="cell-date"></span><span class="cell-intake"></span></div>';
+      }
+
+      for (var d = 1; d <= days; d++) {
+        var intake = totals[d - 1];
+        var ratio = Math.min(intake / goal, 1);
+        var bgColor = getHeatColor(ratio);
+        var isToday = (d === todayDate && month === thisMonth && year === thisYear);
+        var isFuture = (year > thisYear) || (year === thisYear && month > thisMonth) ||
+                       (year === thisYear && month === thisMonth && d > todayDate);
+
+        var intakeLabel = '';
+        if (intake >= 1000) {
+          intakeLabel = (intake / 1000).toFixed(1) + 'L';
+        } else if (intake > 0) {
+          intakeLabel = intake + 'ml';
+        }
+
+        // FIX #3: 未来日期显示日期号但半透明
+        var cellClass = 'calendar-cell';
+        if (isFuture) cellClass += ' future';
+
+        html +=
+          '<div class="' + cellClass + '"' +
+          ' style="background:' + (isFuture ? '#F1F5F9' : bgColor) + ';' +
+          (isToday ? 'border:2px solid var(--color-primary);' : '') + '"' +
+          ' title="' + d + '日: ' + intake + 'ml">' +
+            '<span class="cell-date">' + d + '</span>' +
+            '<span class="cell-intake">' + intakeLabel + '</span>' +
+          '</div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    function getHeatColor(ratio) {
+      if (ratio <= 0) return '#E2E8F0';
+      if (ratio < 0.3) return '#BFDBFE';
+      if (ratio < 0.6) return '#93C5FD';
+      if (ratio < 1) return '#3B82F6';
+      return '#1D4ED8';
+    }
+
+    function renderBarChart() {
+      var now = new Date();
+      var year = now.getFullYear();
+      var titleEl = $('#year-title');
+      if (titleEl) titleEl.textContent = year + '年';
+
+      var pureOnly = statsLiquid === 'pure';
+      var monthlyTotals = getYearMonthlyTotals(year, pureOnly);
+      var goal = loadGoal();
+      var maxTotal = Math.max.apply(null, monthlyTotals.concat([goal * 31]));
+      if (maxTotal === 0) maxTotal = goal * 31;
+
+      var chart = $('#bar-chart');
+      if (!chart) return;
+
+      var nowMonth = now.getMonth();
+      var html = '';
+
+      for (var m = 0; m < 12; m++) {
+        var t = monthlyTotals[m];
+        var barMaxH = maxTotal > 0 ? (t / maxTotal) * 85 : 2;
+        var h = Math.max(barMaxH, 2);
+
+        var valLabel = '';
+        if (t >= 10000) {
+          valLabel = (t / 1000).toFixed(0) + 'L';
+        } else if (t >= 1000) {
+          valLabel = (t / 1000).toFixed(1) + 'L';
+        } else if (t > 0) {
+          valLabel = t + 'ml';
+        }
+
+        var isGoalReached = t >= goal * 28;
+
+        html +=
+          '<div class="bar-wrapper">' +
+            '<span class="bar-value">' + valLabel + '</span>' +
+            '<div class="bar-fill' + (isGoalReached ? ' goal-reached' : '') + '"' +
+            ' style="height:' + h + '%;' + (m === nowMonth ? 'opacity:1;' : 'opacity:0.7;') + '"' +
+            ' title="' + (m + 1) + '月: ' + formatVolume(t) + '"></div>' +
+            '<span class="bar-label">' + (m + 1) + '</span>' +
+          '</div>';
+      }
+      chart.innerHTML = html;
+    }
+
+    function formatVolume(ml) {
+      if (ml >= 1000) return (ml / 1000).toFixed(1) + 'L';
+      return ml + 'ml';
+    }
+
+    function renderSummary() {
+      var pureOnly = statsLiquid === 'pure';
+      var records = loadRecords();
+      var goal = loadGoal();
+
+      var daysSinceFirst = 1;
+      if (records.length > 0) {
+        var firstTs = records[records.length - 1].timestamp;
+        daysSinceFirst = Math.max(1, Math.ceil((Date.now() - firstTs) / 86400000));
+      }
+
+      var totalAll = 0;
+      for (var i = 0; i < records.length; i++) {
+        if (pureOnly && records[i].type !== 'water') continue;
+        totalAll += records[i].volume;
+      }
+      var avgDaily = Math.round(totalAll / daysSinceFirst);
+
+      var dayMap = {};
+      for (var j = 0; j < records.length; j++) {
+        if (pureOnly && records[j].type !== 'water') continue;
+        var dk = dayStart(records[j].timestamp);
+        dayMap[dk] = (dayMap[dk] || 0) + records[j].volume;
+      }
+      var bestDay = 0;
+      var keys = Object.keys(dayMap);
+      for (var k = 0; k < keys.length; k++) {
+        if (dayMap[keys[k]] > bestDay) bestDay = dayMap[keys[k]];
+      }
+
+      var streak = getStreak();
+      var rate30 = getGoalRate(30);
+
+      var el;
+      el = $('#stat-avg'); if (el) el.textContent = avgDaily;
+      el = $('#stat-best'); if (el) el.textContent = bestDay;
+      el = $('#stat-streak'); if (el) el.textContent = streak;
+      el = $('#stat-rate'); if (el) el.textContent = rate30 + '%';
+    }
+
+    /* --- 设置页渲染 --- */
+    function renderSettings() {
+      var goal = loadGoal();
+      var weight = loadWeight();
+      var gEl = $('#input-goal'); if (gEl) gEl.value = goal;
+      var wEl = $('#input-weight'); if (wEl) wEl.value = weight || '';
+
+      // FIX #4a: 自动检测基础 URL
+      var urlEl = $('#input-base-url');
+      if (urlEl && !urlEl.dataset.manualSet) {
+        var loc = window.location;
+        var autoUrl = loc.origin + loc.pathname.replace(/\/[^/]*$/, '/');
+        if (autoUrl.indexOf('localhost') === -1 && autoUrl.indexOf('127.0.0.1') === -1) {
+          urlEl.value = autoUrl;
+        }
+      }
+    }
+
+    /* ==========================================================
+       7. 二维码处理
+       ========================================================== */
+
+    /** FIX #4b: 生成带标签的二维码（Canvas 合成） */
+    function generateQR() {
+      var volumeEl = $('#input-qr-volume');
+      var typeEl = $('#input-qr-type');
+      var volume = volumeEl ? volumeEl.value : '300';
+      var type = typeEl ? typeEl.value : 'water';
+      // 如果选了"其他"，读取自定义类型名称
+      var customTypeName = '';
+      var displayType = type;
+      if (type === 'other') {
+        var customTypeEl = $('#input-custom-type');
+        customTypeName = customTypeEl ? customTypeEl.value.trim() : '';
+        if (customTypeName) displayType = customTypeName;
+      }
+      var baseUrl = getBaseUrl();
+
+      if (!baseUrl) {
+        showToast('⚠️ 请先在高级设置中填写基础 URL', 'warning');
+        // 展开高级设置
+        var panel = $('#advanced-panel');
+        var toggle = $('#advanced-toggle');
+        if (panel && !panel.classList.contains('open')) {
+          panel.classList.add('open');
+          if (toggle) toggle.classList.add('open');
+        }
+        var urlInput = $('#input-base-url');
+        if (urlInput) {
+          urlInput.style.borderColor = 'var(--color-danger)';
+          urlInput.focus();
+          setTimeout(function () { urlInput.style.borderColor = ''; }, 2000);
+        }
+        return;
+      }
+
+      baseUrl = baseUrl.replace(/\/+$/, '');
+
+      var params;
+      if (volume === '0') {
+        params = 'volume=custom';
+      } else {
+        params = 'volume=' + encodeURIComponent(volume) + '&type=' + encodeURIComponent(type);
+      }
+
+      var url = baseUrl + '?' + params;
+
+      var container = $('#qr-code-container');
+      container.innerHTML = '';
+
+      if (typeof QRCode === 'undefined') {
+        container.innerHTML = '<p style="color:var(--color-danger);font-size:13px;">二维码库加载失败，请检查网络连接</p>';
+        $('#qr-result').classList.remove('hidden');
+        return;
+      }
+
+      // 生成原始二维码
+      new QRCode(container, {
+        text: url,
+        width: 200,
+        height: 200,
+        colorDark: '#1E293B',
+        colorLight: '#FFFFFF',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      // FIX #4b: 用 Canvas 合成带标签的二维码
+      setTimeout(function () {
+        var qrCanvas = container.querySelector('canvas');
+        var qrImg = container.querySelector('img');
+        if (!qrCanvas && !qrImg) return;
+
+        var label = volume === '0' ? '万能码' : volume + 'ml ' + (displayType !== 'other' ? TYPE_LABELS[type] : customTypeName || '其他');
+
+        var composite = document.createElement('canvas');
+        composite.width = 220;
+        composite.height = 240;
+        var ctx = composite.getContext('2d');
+
+        // 白底
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, 220, 240);
+
+        // 画二维码
+        if (qrCanvas) {
+          ctx.drawImage(qrCanvas, 10, 10, 200, 200);
+        } else if (qrImg) {
+          ctx.drawImage(qrImg, 10, 10, 200, 200);
+        }
+
+        // 画标签文字
+        ctx.fillStyle = '#1E293B';
+        ctx.font = 'bold 15px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, 110, 230);
+
+        // 替换容器内容
+        container.innerHTML = '';
+        container.appendChild(composite);
+      }, 100);
+
+      var labelText = volume === '0' ? '万能码（自定义记录）' : volume + 'ml ' + (displayType !== 'other' ? TYPE_LABELS[type] : customTypeName || '其他');
+      $('#qr-info').textContent = labelText + ' — 扫码即记录';
+      $('#qr-result').classList.remove('hidden');
+
+      // 滚动到二维码
+      var qrResult = $('#qr-result');
+      if (qrResult) qrResult.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /** 显示图片预览弹窗，用户长按保存 */
+    function showImagePreview(dataUrl) {
+      var imgEl = $('#image-preview-img');
+      if (imgEl) imgEl.src = dataUrl;
+      openModal('modal-image');
+    }
+
+    /** 获取基础 URL，自动检测 */
+    function getBaseUrl() {
+      var urlEl = $('#input-base-url');
+      if (urlEl && urlEl.value.trim()) {
+        return urlEl.value.trim();
+      }
+      // 自动检测
+      var loc = window.location;
+      var autoUrl = loc.origin + loc.pathname.replace(/\/[^/]*$/, '/');
+      if (autoUrl.indexOf('localhost') === -1 && autoUrl.indexOf('127.0.0.1') === -1) {
+        return autoUrl;
+      }
+      return '';
+    }
+
+    /* --- FIX #6: 扫码成功页 --- */
+    var scanTimerInterval = null;
+
+    function showScanSuccess(volume, type) {
+      var overlay = $('#scan-success');
+      if (!overlay) return;
+
+      var typeLabel = TYPE_LABELS[type] || type;
+
+      // 填充数据
+      var volumeEl = $('#scan-success-volume');
+      if (volumeEl) volumeEl.textContent = '已记录 ' + volume + 'ml';
+      var typeEl = $('#scan-success-type');
+      if (typeEl) typeEl.textContent = typeLabel;
+      var quoteEl = $('#scan-success-quote');
+      if (quoteEl) quoteEl.textContent = randomQuote();
+
+      // 10 秒倒计时
+      var countdownEl = $('#scan-success-countdown');
+      var count = 10;
+      if (countdownEl) countdownEl.textContent = count;
+
+      overlay.classList.remove('hidden');
+
+      // 清除旧计时器
+      if (scanTimerInterval) clearInterval(scanTimerInterval);
+
+      scanTimerInterval = setInterval(function () {
+        count--;
+        if (countdownEl) countdownEl.textContent = count;
+        if (count <= 0) {
+          clearInterval(scanTimerInterval);
+          scanTimerInterval = null;
+          overlay.classList.add('hidden');
+          // FIX #6: 不调用微信关闭窗口，让用户自己返回
+        }
+      }, 1000);
+    }
+
+    function dismissScanSuccess() {
+      var overlay = $('#scan-success');
+      if (overlay) overlay.classList.add('hidden');
+      if (scanTimerInterval) {
+        clearInterval(scanTimerInterval);
+        scanTimerInterval = null;
+      }
+    }
+
+    /* --- FIX #6: 处理扫码 URL 参数 --- */
+    function handleUrlParams() {
+      var params = new URLSearchParams(window.location.search);
+
+      // 演示模式
+      if (params.get('mode') === 'demo') {
+        generateDemoData();
+        showToast('🎭 演示模式 — 90天模拟数据已加载', 'success');
+        renderHome();
+        return;
+      }
+
+      var volumeStr = params.get('volume');
+      if (!volumeStr) return;
+
+      if (volumeStr === 'custom') {
+        openModal('modal-custom');
+        var last = loadLastCustom();
+        if (last) {
+          setTimeout(function () {
+            selectVolumeBtn(last.volume);
+            selectTypeBtn(last.type);
+          }, 200);
+        }
+        return;
+      }
+
+      var volume = parseInt(volumeStr, 10);
+      if (isNaN(volume) || volume <= 0) return;
+
+      var type = params.get('type') || 'water';
+
+      // 防误触
+      var dup = checkDuplicate(volume, type);
+      if (dup) {
+        window._pendingRecord = { volume: volume, type: type, source: 'scan' };
+        var dupMsg = '3 分钟内已记录过 ' + volume + 'ml ' + (TYPE_LABELS[type] || type);
+        var msgEl = $('#duplicate-msg');
+        if (msgEl) msgEl.textContent = dupMsg;
+        openModal('modal-duplicate');
+        return;
+      }
+
+      // 正常记录 + 展示扫码成功页
+      addRecord(volume, type, 'scan', '');
+      renderHome();
+      showScanSuccess(volume, type);
+    }
+
+    /* ==========================================================
+       8. 演示模式
+       ========================================================== */
+
+    function generateDemoData() {
+      var records = [];
+      var now = Date.now();
+      var types = ['water', 'water', 'water', 'water', 'tea', 'coffee', 'water', 'water', 'water', 'juice', 'milktea'];
+      var volumes = [200, 300, 300, 500, 250, 350, 200, 300, 500, 400, 450];
+
+      for (var d = 89; d >= 0; d--) {
+        var count = Math.floor(Math.random() * 6) + 3;
+        var dayTs = now - d * 86400000;
+        for (var c = 0; c < count; c++) {
+          var hour = Math.floor(Math.random() * 12) + 8;
+          var min = Math.floor(Math.random() * 60);
+          var ts = dayTs - (24 - hour) * 3600000 - min * 60000;
+          ts = ts + Math.floor(Math.random() * 1800000);
+          var ti = Math.floor(Math.random() * types.length);
+          records.push({
+            id: genId(),
+            timestamp: ts,
+            volume: volumes[ti],
+            type: types[ti],
+            source: Math.random() > 0.4 ? 'scan' : 'click',
+            note: ''
+          });
+        }
+      }
+      records.sort(function (a, b) { return b.timestamp - a.timestamp; });
+      saveRecords(records);
+    }
+
+    /* ==========================================================
+       9. 事件绑定
+       ========================================================== */
+
+    /* --- 底部导航 --- */
+    $$('.nav-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        switchPage(this.dataset.page);
+      });
+    });
+
+    /* --- 快捷按钮 --- */
+    $$('.btn-quick').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var volume = parseInt(this.dataset.volume, 10);
+        var type = this.dataset.type;
+        addRecord(volume, type, 'click', '');
+        showToast('✅ 已记录 ' + volume + 'ml ' + (TYPE_LABELS[type] || type), 'success');
+        renderHome();
+      });
+    });
+
+    /* --- 自定义记录按钮 --- */
+    var btnCustom = $('#btn-custom-record');
+    if (btnCustom) {
+      btnCustom.addEventListener('click', function () {
+        var last = loadLastCustom();
+        if (last) {
+          selectVolumeBtn(last.volume);
+          selectTypeBtn(last.type);
+        } else {
+          selectVolumeBtn(300);
+          selectTypeBtn('water');
+        }
+        var noteEl = $('#custom-note'); if (noteEl) noteEl.value = '';
+        var volEl = $('#custom-volume'); if (volEl) volEl.value = '';
+        openModal('modal-custom');
+      });
+    }
+
+    /* --- 自定义弹窗 - 水量选择 --- */
+    $$('#modal-custom .vol-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        selectVolumeBtn(parseInt(this.dataset.vol, 10));
+        var cv = $('#custom-volume'); if (cv) cv.value = '';
+      });
+    });
+
+    function selectVolumeBtn(vol) {
+      $$('#modal-custom .vol-btn').forEach(function (b) {
+        b.classList.toggle('active', parseInt(b.dataset.vol, 10) === vol);
+      });
+      var presets = [100, 150, 200, 250, 300, 400, 500, 600];
+      if (presets.indexOf(vol) === -1) {
+        var cv = $('#custom-volume'); if (cv) cv.value = vol;
+      }
+    }
+
+    /* --- 自定义弹窗 - 类型选择 --- */
+    $$('#modal-custom .type-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        selectTypeBtn(this.dataset.type);
+      });
+    });
+
+    function selectTypeBtn(type) {
+      $$('#modal-custom .type-btn').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.type === type);
+      });
+    }
+
+    /* --- 自定义弹窗 - 提交 --- */
+    var btnSubmitCustom = $('#btn-submit-custom');
+    if (btnSubmitCustom) {
+      btnSubmitCustom.addEventListener('click', function () {
+        var activeVol = document.querySelector('#modal-custom .vol-btn.active');
+        var manualVolEl = $('#custom-volume');
+        var manualVol = manualVolEl ? manualVolEl.value : '';
+        var volume;
+
+        if (manualVol && parseInt(manualVol, 10) > 0) {
+          volume = parseInt(manualVol, 10);
+        } else if (activeVol) {
+          volume = parseInt(activeVol.dataset.vol, 10);
+        } else {
+          showToast('请选择或输入水量', 'warning');
+          return;
+        }
+
+        var activeType = document.querySelector('#modal-custom .type-btn.active');
+        var type = activeType ? activeType.dataset.type : 'water';
+        var noteEl = $('#custom-note');
+        var note = noteEl ? noteEl.value.trim() : '';
+
+        addRecord(volume, type, 'custom', note);
+        closeModal('modal-custom');
+        showToast('✅ 已记录 ' + volume + 'ml ' + (TYPE_LABELS[type] || type), 'success');
+        renderHome();
+      });
+    }
+
+    /* --- 弹窗关闭 --- */
+    $$('.modal-close').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        closeModal(this.dataset.modal);
+      });
+    });
+
+    $$('.modal-overlay').forEach(function (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+          if (overlay.id === 'modal-confirm' && _confirmResolve) {
+            _confirmResolve(false);
+            _confirmResolve = null;
+          }
+          overlay.classList.add('hidden');
+        }
+      });
+    });
+
+    /* --- 确认弹窗按钮 --- */
+    var btnConfirmOk = $('#btn-confirm-ok');
+    if (btnConfirmOk) {
+      btnConfirmOk.addEventListener('click', function () {
+        closeModal('modal-confirm');
+        if (_confirmResolve) { _confirmResolve(true); _confirmResolve = null; }
+      });
+    }
+    var btnConfirmCancel = $('#btn-confirm-cancel');
+    if (btnConfirmCancel) {
+      btnConfirmCancel.addEventListener('click', function () {
+        closeModal('modal-confirm');
+        if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+      });
+    }
+
+    /* --- 重复扫码-强行记录 --- */
+    var btnForceRecord = $('#btn-force-record');
+    if (btnForceRecord) {
+      btnForceRecord.addEventListener('click', function () {
+        if (window._pendingRecord) {
+          var p = window._pendingRecord;
+          addRecord(p.volume, p.type, p.source, '');
+          showScanSuccess(p.volume, p.type);
+          window._pendingRecord = null;
+        }
+        closeModal('modal-duplicate');
+      });
+    }
+
+    /* --- FIX #6: 扫码成功页关闭 --- */
+    var btnDismiss = $('#scan-success-dismiss');
+    if (btnDismiss) {
+      btnDismiss.addEventListener('click', dismissScanSuccess);
+    }
+
+    /* --- 时间线编辑/删除 (事件委托) --- */
+    var timelineList = $('#timeline-list');
+    if (timelineList) {
+      timelineList.addEventListener('click', function (e) {
+        var btn = e.target.closest('.tl-btn');
+        if (!btn) return;
+        var id = btn.dataset.id;
+        var action = btn.dataset.action;
+
+        if (action === 'edit') {
+          openEditModal(id);
+        } else if (action === 'delete') {
+          showConfirm('确认删除', '确定删除这条记录吗？', '删除', '🗑').then(function (ok) {
+            if (!ok) return;
+            deleteRecord(id);
+            showToast('已删除', 'warning');
+            renderHome();
+          });
+        }
+      });
+    }
+
+    function openEditModal(id) {
+      var records = loadRecords();
+      var record = null;
+      for (var i = 0; i < records.length; i++) {
+        if (records[i].id === id) { record = records[i]; break; }
+      }
+      if (!record) return;
+
+      var idEl = $('#edit-record-id'); if (idEl) idEl.value = id;
+      var volEl = $('#edit-volume'); if (volEl) volEl.value = record.volume;
+      var typeEl = $('#edit-type'); if (typeEl) typeEl.value = record.type;
+      var noteEl = $('#edit-note'); if (noteEl) noteEl.value = record.note || '';
+      openModal('modal-edit');
+    }
+
+    var btnSaveEdit = $('#btn-save-edit');
+    if (btnSaveEdit) {
+      btnSaveEdit.addEventListener('click', function () {
+        var idEl = $('#edit-record-id');
+        var id = idEl ? idEl.value : '';
+        var volEl = $('#edit-volume');
+        var volume = volEl ? parseInt(volEl.value, 10) : 0;
+        var typeEl = $('#edit-type');
+        var type = typeEl ? typeEl.value : 'water';
+        var noteEl = $('#edit-note');
+        var note = noteEl ? noteEl.value.trim() : '';
+
+        if (isNaN(volume) || volume <= 0) {
+          showToast('请输入有效水量', 'warning');
+          return;
+        }
+
+        updateRecord(id, volume, type, note);
+        closeModal('modal-edit');
+        showToast('✅ 记录已更新', 'success');
+        renderHome();
+      });
+    }
+
+    /* --- 统计页切换 --- */
+    $$('#page-stats .toggle-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var group = this.parentElement;
+        group.querySelectorAll('.toggle-btn').forEach(function (b) { b.classList.remove('active'); });
+        this.classList.add('active');
+
+        if (this.dataset.period) statsPeriod = this.dataset.period;
+        if (this.dataset.liquid) statsLiquid = this.dataset.liquid;
+
+        var calView = $('#calendar-view');
+        var yearView = $('#year-view');
+        if (statsPeriod === 'month') {
+          if (calView) calView.classList.remove('hidden');
+          if (yearView) yearView.classList.add('hidden');
+        } else {
+          if (calView) calView.classList.add('hidden');
+          if (yearView) yearView.classList.remove('hidden');
+        }
+
+        renderStats();
+      });
+    });
+
+    /* --- FIX #4a: 高级设置折叠 --- */
+    var advancedToggle = $('#advanced-toggle');
+    if (advancedToggle) {
+      advancedToggle.addEventListener('click', function () {
+        var panel = $('#advanced-panel');
+        var isOpen = panel && panel.classList.contains('open');
+        if (panel) {
+          if (isOpen) {
+            panel.classList.remove('open');
+            this.classList.remove('open');
+          } else {
+            panel.classList.add('open');
+            this.classList.add('open');
+          }
+        }
+      });
+    }
+
+    /* --- 基础 URL 手动修改标记 --- */
+    var baseUrlInput = $('#input-base-url');
+    if (baseUrlInput) {
+      baseUrlInput.addEventListener('input', function () {
+        this.dataset.manualSet = '1';
+      });
+    }
+
+    /* --- 设置页 - 保存目标 --- */
+    var btnSaveGoal = $('#btn-save-goal');
+    if (btnSaveGoal) {
+      btnSaveGoal.addEventListener('click', function () {
+        var wEl = $('#input-weight');
+        var weight = wEl ? parseInt(wEl.value, 10) : NaN;
+        var gEl = $('#input-goal');
+        var goal = gEl ? parseInt(gEl.value, 10) : NaN;
+
+        if (weight && !isNaN(weight)) {
+          if (weight < 20 || weight > 300) { showToast('体重范围 20-300kg', 'warning'); return; }
+          saveWeight(weight);
+        }
+
+        if (isNaN(goal) || goal < 500 || goal > 10000) {
+          showToast('目标水量范围 500-10000ml', 'warning');
+          return;
+        }
+
+        saveGoal(goal);
+        showToast('✅ 目标已保存', 'success');
+        renderHome();
+      });
+    }
+
+    /* --- 体重自动计算 --- */
+    var inputWeight = $('#input-weight');
+    if (inputWeight) {
+      inputWeight.addEventListener('input', function () {
+        var w = parseInt(this.value, 10);
+        if (!isNaN(w) && w >= 20 && w <= 300) {
+          var gEl = $('#input-goal'); if (gEl) gEl.value = w * 30;
+        }
+      });
+    }
+
+    /* --- 二维码预设 --- */
+    $$('.btn-preset').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var vEl = $('#input-qr-volume'); if (vEl) vEl.value = this.dataset.v;
+        var tEl = $('#input-qr-type'); if (tEl) tEl.value = this.dataset.t;
+        toggleCustomTypeRow();
+        generateQR();
+      });
+    });
+
+    /* --- 类型选"其他"时显示自定义输入框 --- */
+    var inputQrType = $('#input-qr-type');
+    if (inputQrType) {
+      inputQrType.addEventListener('change', toggleCustomTypeRow);
+    }
+
+    function toggleCustomTypeRow() {
+      var tEl = $('#input-qr-type');
+      var row = $('#row-custom-type');
+      if (!tEl || !row) return;
+      if (tEl.value === 'other') {
+        row.classList.remove('hidden');
+      } else {
+        row.classList.add('hidden');
+      }
+    }
+
+    /* --- 生成二维码 --- */
+    var btnGenQr = $('#btn-generate-qr');
+    if (btnGenQr) btnGenQr.addEventListener('click', generateQR);
+
+    /* --- 保存二维码（弹窗预览，长按保存） --- */
+    var btnSaveQr = $('#btn-save-qr');
+    if (btnSaveQr) {
+      btnSaveQr.addEventListener('click', function () {
+        var container = $('#qr-code-container');
+        if (!container) return;
+        var canvas = container.querySelector('canvas');
+        var img = container.querySelector('img');
+        var dataUrl;
+
+        if (canvas) {
+          dataUrl = canvas.toDataURL('image/png');
+        } else if (img) {
+          dataUrl = img.src;
+        } else {
+          showToast('请先生成二维码', 'warning');
+          return;
+        }
+
+        showImagePreview(dataUrl);
+      });
+    }
+
+    /* --- FIX #4c: 组合打印 → Canvas 合成，文字移到底部 --- */
+    var btnPrintQr = $('#btn-print-qr');
+    if (btnPrintQr) {
+      btnPrintQr.addEventListener('click', function () {
+        var baseUrl = getBaseUrl();
+        if (!baseUrl) {
+          showToast('⚠️ 请先在高级设置中填写基础 URL', 'warning');
+          return;
+        }
+        baseUrl = baseUrl.replace(/\/+$/, '');
+
+        if (typeof QRCode === 'undefined') {
+          showToast('二维码库加载失败，请检查网络', 'error');
+          return;
+        }
+
+        showToast('🖼 正在生成组合图片...', '');
+
+        var presets = [
+          { volume: 200, type: 'water', label: '200ml 纯水' },
+          { volume: 300, type: 'water', label: '300ml 纯水' },
+          { volume: 500, type: 'water', label: '500ml 纯水' },
+          { volume: 0,   type: 'custom', label: '万能码' }
+        ];
+
+        var tempDiv = document.createElement('div');
+        tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
+        document.body.appendChild(tempDiv);
+
+        var qrLabels = [];
+
+        presets.forEach(function (p) {
+          var wrapper = document.createElement('div');
+          tempDiv.appendChild(wrapper);
+
+          var url;
+          if (p.volume === 0) {
+            url = baseUrl + '?volume=custom';
+          } else {
+            url = baseUrl + '?volume=' + p.volume + '&type=' + p.type;
+          }
+
+          new QRCode(wrapper, {
+            text: url,
+            width: 180,
+            height: 180,
+            colorDark: '#1E293B',
+            colorLight: '#FFFFFF',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+
+          qrLabels.push(p.label);
+        });
+
+        setTimeout(function () {
+          var canvases = tempDiv.querySelectorAll('canvas');
+          if (canvases.length < 4) {
+            showToast('二维码生成失败，请重试', 'error');
+            document.body.removeChild(tempDiv);
+            return;
+          }
+
+          var scale = 2;
+          var padding = 40 * scale;
+          var qrSize = 200 * scale;
+          var labelH = 30 * scale;
+          var cols = 2;
+          var rows = 2;
+          var cellW = qrSize + padding;
+          var cellH = qrSize + labelH + padding;
+          var canvasW = cols * cellW + padding;
+          var canvasH = rows * cellH + padding + 60 * scale;
+
+          var master = document.createElement('canvas');
+          master.width = canvasW;
+          master.height = canvasH;
+          var ctx = master.getContext('2d');
+
+          // 白色背景
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvasW, canvasH);
+
+          // 标题
+          ctx.fillStyle = '#1E293B';
+          ctx.font = 'bold ' + (22 * scale) + 'px "PingFang SC","Microsoft YaHei",sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('💧 水记 — 扫码喝水二维码', canvasW / 2, padding * 0.7);
+
+          // 画 4 个二维码
+          for (var i = 0; i < 4; i++) {
+            var col = i % cols;
+            var row = Math.floor(i / cols);
+            var x = padding + col * cellW;
+            var y = padding + row * cellH;
+
+            // 圆角白色背景
+            var rx = 12 * scale;
+            ctx.fillStyle = '#F8FAFC';
+            ctx.beginPath();
+            ctx.moveTo(x + rx, y);
+            ctx.lineTo(x + cellW - padding - rx, y);
+            ctx.quadraticCurveTo(x + cellW - padding, y, x + cellW - padding, y + rx);
+            ctx.lineTo(x + cellW - padding, y + cellH - padding - rx);
+            ctx.quadraticCurveTo(x + cellW - padding, y + cellH - padding, x + cellW - padding - rx, y + cellH - padding);
+            ctx.lineTo(x + rx, y + cellH - padding);
+            ctx.quadraticCurveTo(x, y + cellH - padding, x, y + cellH - padding - rx);
+            ctx.lineTo(x, y + rx);
+            ctx.quadraticCurveTo(x, y, x + rx, y);
+            ctx.fill();
+
+            var qrCanvas = canvases[i];
+            var qrDrawX = x + (cellW - padding - qrSize) / 2;
+            var qrDrawY = y + 10 * scale;
+            ctx.drawImage(qrCanvas, qrDrawX, qrDrawY, qrSize, qrSize);
+
+            // 标签
+            ctx.fillStyle = '#475569';
+            ctx.font = (14 * scale) + 'px "PingFang SC","Microsoft YaHei",sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(qrLabels[i], x + (cellW - padding) / 2, y + qrSize + 28 * scale);
+          }
+
+          // FIX #4c: "贴在水杯上" 移到最底部脚注
+          ctx.fillStyle = '#CBD5E1';
+          ctx.font = (10 * scale) + 'px "PingFang SC","Microsoft YaHei",sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('剪开后贴在水杯上使用 — shuiji.app', canvasW / 2, canvasH - 15 * scale);
+
+          // 导出为图片预览
+          master.toBlob(function (blob) {
+            var url = URL.createObjectURL(blob);
+            showImagePreview(url);
+          }, 'image/png');
+
+          document.body.removeChild(tempDiv);
+        }, 600);
+      });
+    }
+
+    /* --- 导出 JSON --- */
+    var btnExport = $('#btn-export');
+    if (btnExport) {
+      btnExport.addEventListener('click', function () {
+        var data = {
+          version: '1.0',
+          exportedAt: new Date().toISOString(),
+          goal: loadGoal(),
+          weight: loadWeight(),
+          records: loadRecords()
+        };
+        var jsonStr = JSON.stringify(data, null, 2);
+
+        var preEl = $('#export-content');
+        if (preEl) preEl.textContent = jsonStr;
+        openModal('modal-export');
+      });
+    }
+
+    var btnCopyJson = $('#btn-copy-json');
+    if (btnCopyJson) {
+      btnCopyJson.addEventListener('click', function () {
+        var preEl = $('#export-content');
+        var text = preEl ? preEl.textContent : '';
+        if (!text) return;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            showToast('✅ 已复制到剪贴板', 'success');
+          }).catch(function () {
+            fallbackCopy(text);
+          });
+        } else {
+          fallbackCopy(text);
+        }
+      });
+    }
+
+    function fallbackCopy(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.cssText = 'position:fixed;left:-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try { document.execCommand('copy'); showToast('✅ 已复制到剪贴板', 'success'); }
+      catch (e) { showToast('复制失败，请手动选择文本', 'error'); }
+      document.body.removeChild(textarea);
+    }
+
+    var btnDownloadJson = $('#btn-download-json');
+    if (btnDownloadJson) {
+      btnDownloadJson.addEventListener('click', function () {
+        var preEl = $('#export-content');
+        var text = preEl ? preEl.textContent : '';
+        if (!text) return;
+        var blob = new Blob([text], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'shuiji-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('✅ 数据文件已下载', 'success');
+      });
+    }
+
+    /* --- 导入 JSON --- */
+    var btnImport = $('#btn-import');
+    if (btnImport) {
+      btnImport.addEventListener('click', function () {
+        var fileInput = $('#import-file');
+        if (fileInput) fileInput.click();
+      });
+    }
+
+    var importFile = $('#import-file');
+    if (importFile) {
+      importFile.addEventListener('change', function () {
+        var file = this.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            var data = JSON.parse(e.target.result);
+            if (!data.records || !Array.isArray(data.records)) {
+              throw new Error('无效的数据格式');
+            }
+            showConfirm('确认导入', '即将导入 ' + data.records.length + ' 条记录。\n当前数据将被覆盖，确定继续？', '继续导入', '📥').then(function (ok) {
+              if (!ok) return;
+              saveRecords(data.records);
+              if (data.goal) saveGoal(data.goal);
+              if (data.weight) saveWeight(data.weight);
+              showToast('✅ 已导入 ' + data.records.length + ' 条记录', 'success');
+              renderHome();
+              if (currentPage === 'stats') renderStats();
+            });
+          } catch (err) {
+            showToast('❌ 文件格式错误', 'error');
+          }
+        };
+        reader.readAsText(file);
+        this.value = '';
+      });
+    }
+
+    /* --- 清除数据 --- */
+    var btnClear = $('#btn-clear-data');
+    if (btnClear) {
+      btnClear.addEventListener('click', function () {
+        showConfirm('清除数据', '⚠️ 确定清除所有饮水记录和目标设置吗？\n此操作不可恢复！', '清除', '⚠️').then(function (ok) {
+          if (!ok) return;
+          showConfirm('再次确认', '再次确认：清除所有数据？', '确认清除', '🗑').then(function (ok2) {
+            if (!ok2) return;
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(GOAL_KEY);
+            localStorage.removeItem(WEIGHT_KEY);
+            localStorage.removeItem(LAST_CUSTOM_KEY);
+            localStorage.removeItem('shuiji_onboarded');
+            showToast('所有数据已清除', 'warning');
+            renderHome();
+            if (currentPage === 'stats') renderStats();
+          });
+        });
+      });
+    }
+
+    /* --- 首次引导 --- */
+    var onboardWeight = $('#onboard-weight');
+    if (onboardWeight) {
+      onboardWeight.addEventListener('input', function () {
+        var w = parseInt(this.value, 10);
+        if (!isNaN(w) && w >= 20 && w <= 300) {
+          var recommend = w * 30;
+          var gEl = $('#onboard-goal'); if (gEl) gEl.value = recommend;
+          var rEl = $('#onboard-recommend'); if (rEl) rEl.textContent = recommend;
+        } else {
+          var rEl2 = $('#onboard-recommend'); if (rEl2) rEl2.textContent = '-';
+        }
+      });
+    }
+
+    var btnOnboard = $('#btn-onboard-start');
+    if (btnOnboard) {
+      btnOnboard.addEventListener('click', function () {
+        var wEl = $('#onboard-weight');
+        var weight = wEl ? parseInt(wEl.value, 10) : NaN;
+        var gEl = $('#onboard-goal');
+        var goal = gEl ? parseInt(gEl.value, 10) : NaN;
+
+        if (weight && !isNaN(weight)) {
+          if (weight < 20 || weight > 300) { showToast('体重范围 20-300kg', 'warning'); return; }
+          saveWeight(weight);
+        }
+
+        if (isNaN(goal) || goal < 500 || goal > 10000) {
+          showToast('目标水量范围 500-10000ml', 'warning');
+          return;
+        }
+
+        saveGoal(goal);
+        setOnboarded();
+        closeModal('modal-onboarding');
+        showToast('🎉 开始记录喝水吧！', 'success');
+        renderHome();
+      });
+    }
+
+    /* ==========================================================
+       10. 初始化
+       ========================================================== */
+
+    function init() {
+      if (!hasOnboarded()) {
+        openModal('modal-onboarding');
+      }
+
+      handleUrlParams();
+      renderHome();
+      updatePhoneTime();
+      setInterval(updatePhoneTime, 30000);
+    }
+
+    function updatePhoneTime() {
+      var timeEl = $('#phone-time-text');
+      if (!timeEl) return;
+      var now = new Date();
+      var h = now.getHours();
+      var m = now.getMinutes();
+      timeEl.textContent = ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+  })();
+  </script>
+
+  <!-- Service Worker 注册 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function() {});
+    }
+  </script>
+</body>
+</html>
