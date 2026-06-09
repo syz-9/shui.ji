@@ -3,7 +3,7 @@
    提供基本离线缓存能力
    ============================================================ */
 
-var CACHE_NAME = 'shuiji-v3';
+var CACHE_NAME = 'shuiji-v4';
 var ASSETS = [
   './',
   './index.html',

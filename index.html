@@ -788,25 +788,26 @@
     .advanced-toggle {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: none;
       border: none;
-      color: var(--color-text-muted);
-      font-size: 12px;
+      color: var(--color-text);
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
-      padding: 6px 0;
+      padding: 0;
       font-family: inherit;
       transition: color 0.15s;
-      margin-bottom: 8px;
+      width: 100%;
     }
     .advanced-toggle:hover { color: var(--color-primary); }
     .advanced-toggle .arrow {
       display: inline-block;
       transition: transform 0.2s;
-      font-size: 10px;
+      font-size: 11px;
     }
     .advanced-toggle.open .arrow { transform: rotate(90deg); }
-    .advanced-panel { display: none; }
+    .advanced-panel { display: none; margin-top: 12px; }
     .advanced-panel.open { display: block; }
 
     /* 二维码 */
@@ -1355,18 +1356,6 @@
               <input type="text" id="input-custom-type" placeholder="如：运动饮料、豆浆">
             </div>
 
-            <!-- FIX #4a: 高级设置折叠 -->
-            <button class="advanced-toggle" id="advanced-toggle">
-              <span class="arrow">▶</span> 高级设置
-            </button>
-            <div class="advanced-panel" id="advanced-panel">
-              <div class="input-row">
-                <label>基础 URL <span style="color:var(--color-danger)">*</span></label>
-                <input type="text" id="input-base-url" placeholder="自动检测中...">
-                <p class="hint">二维码扫描后跳转的地址。默认使用当前访问地址，无需修改。</p>
-              </div>
-            </div>
-
             <div class="qr-presets">
               <span class="preset-label">快捷生成：</span>
               <button class="btn-preset" data-v="200" data-t="water">200ml 纯水</button>
@@ -1388,12 +1377,25 @@
 
         <div class="settings-section">
           <h3 class="section-title">数据管理</h3>
-          <div class="backup-actions">
-            <button class="btn-secondary" id="btn-export">📤 查看/导出数据</button>
-            <button class="btn-secondary" id="btn-import">📥 导入 JSON</button>
-            <input type="file" id="import-file" accept=".json" class="hidden">
-          </div>
           <button class="btn-danger" id="btn-clear-data">🗑 清除所有数据</button>
+        </div>
+
+        <div class="settings-section">
+          <button class="advanced-toggle" id="advanced-toggle">
+            <span class="arrow">▶</span> 高级设置
+          </button>
+          <div class="advanced-panel" id="advanced-panel">
+            <div class="input-row">
+              <label>基础 URL</label>
+              <input type="text" id="input-base-url" placeholder="自动检测中...">
+              <p class="hint">二维码扫描后跳转的地址。默认使用当前访问地址，无需修改。</p>
+            </div>
+            <div class="backup-actions" style="margin-top:12px;">
+              <button class="btn-secondary" id="btn-export">📤 查看/导出数据</button>
+              <button class="btn-secondary" id="btn-import">📥 导入 JSON</button>
+              <input type="file" id="import-file" accept=".json" class="hidden">
+            </div>
+          </div>
         </div>
 
         <div class="settings-section">
