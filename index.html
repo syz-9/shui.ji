@@ -475,7 +475,7 @@
       border-radius: 4px;
       margin-left: 6px;
     }
-    .tl-note { font-size: 11px; color: var(--color-text-muted); font-style: italic; margin-top: 2px; }
+    .tl-note { font-size: 11px; color: var(--color-text-muted); font-style: italic; margin-left: 6px; }
     .tl-actions { display: flex; gap: 4px; }
     .tl-btn {
       background: none;
@@ -2048,7 +2048,7 @@
               '<span class="tl-unit">ml</span>' +
               '<span class="tl-type">' + (TYPE_EMOJI[r.type] || '') + ' ' + (TYPE_LABELS[r.type] || r.type) + '</span>' +
               '<span class="tl-source">' + (SOURCE_LABELS[r.source] || r.source) + '</span>' +
-              (r.note ? '<div class="tl-note">' + escapeHtml(r.note) + '</div>' : '') +
+              (r.note ? '<span class="tl-note">' + escapeHtml(r.note) + '</span>' : '') +
             '</div>' +
             '<div class="tl-actions">' +
               '<button class="tl-btn tl-edit" data-action="edit" data-id="' + r.id + '">✏️</button>' +
@@ -3002,11 +3002,9 @@
           ctx.textAlign = 'center';
           ctx.fillText('剪开后贴在水杯上使用 — shuiji.app', canvasW / 2, canvasH - 15 * scale);
 
-          // 导出为图片预览
-          master.toBlob(function (blob) {
-            var url = URL.createObjectURL(blob);
-            showImagePreview(url);
-          }, 'image/png');
+          // 导出为图片预览（dataURL 长按保存兼容性更好）
+          var dataUrl = master.toDataURL('image/png');
+          showImagePreview(dataUrl);
 
           document.body.removeChild(tempDiv);
         }, 600);
