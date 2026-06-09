@@ -578,6 +578,11 @@
       color: #64748B;
       margin-top: 1px;
     }
+    /* 深色背景格子用白色文字 */
+    .calendar-cell.text-light .cell-date,
+    .calendar-cell.text-light .cell-intake {
+      color: #FFFFFF;
+    }
 
     /* FIX #3: 未来日期半透明显示，不隐藏 */
     .calendar-cell.future {
@@ -2112,6 +2117,7 @@
         // FIX #3: 未来日期显示日期号但半透明
         var cellClass = 'calendar-cell';
         if (isFuture) cellClass += ' future';
+        if (!isFuture && ratio >= 0.6) cellClass += ' text-light';
 
         html +=
           '<div class="' + cellClass + '"' +
@@ -2287,6 +2293,10 @@
         params = 'volume=custom';
       } else {
         params = 'volume=' + encodeURIComponent(volume) + '&type=' + encodeURIComponent(type);
+        // 如果选了"其他"且输入了自定义名称，把名称写入 note 参数
+        if (type === 'other' && customTypeName) {
+          params += '&note=' + encodeURIComponent(customTypeName);
+        }
       }
 
       var url = baseUrl + '?' + params;
@@ -2316,7 +2326,7 @@
         var qrImg = container.querySelector('img');
         if (!qrCanvas && !qrImg) return;
 
-        var label = volume === '0' ? '万能码' : volume + 'ml ' + (displayType !== 'other' ? TYPE_LABELS[type] : customTypeName || '其他');
+        var label = volume === '0' ? '万能码' : volume + 'ml ' + (type !== 'other' ? TYPE_LABELS[type] : customTypeName || '其他');
 
         var composite = document.createElement('canvas');
         composite.width = 220;
@@ -2345,7 +2355,7 @@
         container.appendChild(composite);
       }, 100);
 
-      var labelText = volume === '0' ? '万能码（自定义记录）' : volume + 'ml ' + (displayType !== 'other' ? TYPE_LABELS[type] : customTypeName || '其他');
+      var labelText = volume === '0' ? '万能码（自定义记录）' : volume + 'ml ' + (type !== 'other' ? TYPE_LABELS[type] : customTypeName || '其他');
       $('#qr-info').textContent = labelText + ' — 扫码即记录';
       $('#qr-result').classList.remove('hidden');
 
@@ -2379,7 +2389,7 @@
     /* --- FIX #6: 扫码成功页 --- */
     var scanTimerInterval = null;
 
-    function showScanSuccess(volume, type) {
+    function showScanSuccess(volume, type, note) {
       var overlay = $('#scan-success');
       if (!overlay) return;
 
@@ -2389,7 +2399,7 @@
       var volumeEl = $('#scan-success-volume');
       if (volumeEl) volumeEl.textContent = '已记录 ' + volume + 'ml';
       var typeEl = $('#scan-success-type');
-      if (typeEl) typeEl.textContent = typeLabel;
+      if (typeEl) typeEl.textContent = typeLabel + (note ? ' · ' + note : '');
       var quoteEl = $('#scan-success-quote');
       if (quoteEl) quoteEl.textContent = randomQuote();
 
@@ -2455,11 +2465,12 @@
       if (isNaN(volume) || volume <= 0) return;
 
       var type = params.get('type') || 'water';
+      var note = params.get('note') || '';
 
       // 防误触
       var dup = checkDuplicate(volume, type);
       if (dup) {
-        window._pendingRecord = { volume: volume, type: type, source: 'scan' };
+        window._pendingRecord = { volume: volume, type: type, source: 'scan', note: note };
         var dupMsg = '3 分钟内已记录过 ' + volume + 'ml ' + (TYPE_LABELS[type] || type);
         var msgEl = $('#duplicate-msg');
         if (msgEl) msgEl.textContent = dupMsg;
@@ -2468,9 +2479,9 @@
       }
 
       // 正常记录 + 展示扫码成功页
-      addRecord(volume, type, 'scan', '');
+      addRecord(volume, type, 'scan', note);
       renderHome();
-      showScanSuccess(volume, type);
+      showScanSuccess(volume, type, note);
     }
 
     /* ==========================================================
@@ -2648,8 +2659,8 @@
       btnForceRecord.addEventListener('click', function () {
         if (window._pendingRecord) {
           var p = window._pendingRecord;
-          addRecord(p.volume, p.type, p.source, '');
-          showScanSuccess(p.volume, p.type);
+          addRecord(p.volume, p.type, p.source, p.note || '');
+          showScanSuccess(p.volume, p.type, p.note);
           window._pendingRecord = null;
         }
         closeModal('modal-duplicate');
